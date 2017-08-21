@@ -14,13 +14,13 @@ class FundSpider(scrapy.Spider):
     ]
 
     def __init__(self):
-        self.index = 417544  # int(time.time()) / 3600
+        self.index = int(time.time()) / 3600
 
     def parse(self, response):
         print response
         XPATH_PAGE = "//div[@id='main']/div[@id='content']/table/tbody/tr"
         fundPaths = response.selector.xpath(XPATH_PAGE)
-        for fundPath in fundPaths[10:1000]:
+        for fundPath in fundPaths:
             fund = FundspiderItem()
             fund['ts'] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time()))
             fund['index'] = self.index
@@ -40,9 +40,9 @@ class FundSpider(scrapy.Spider):
 
             print value
             if value is not None:
-                # yield fund
                 holding_page = "http://info.chinafund.cn/fund/%s/ccmx/" % code
                 print holding_page
+                yield fund
                 yield scrapy.Request(holding_page, callback=self._get_holdings, meta={
                     'fund_code': code,
                     # 'handle_httpstatus_all': True,
@@ -51,7 +51,6 @@ class FundSpider(scrapy.Spider):
                 # 'dont_redirect': True,
                 # 'handle_httpstatus_list': [301, 302]
                 # break
-        return
 
     def _get_holdings(self, response):
         self.logger.info("got response %d for %r" % (response.status, response.url))
@@ -62,8 +61,9 @@ class FundSpider(scrapy.Spider):
         #         callback=self._get_holdings)
 
         # response.selector.xpath('//div[@id="c"]/table')[1].xpath('tr')[1].xpath('td')
+        selector = scrapy.selector.Selector(response)
         XPATH_HOLDINGS = "//div[@id='c']/table[@class='fundtable2'][1]/tr"
-        holds = response.selector.xpath(XPATH_HOLDINGS)
+        holds = selector.xpath(XPATH_HOLDINGS)
         for hold in holds[1:]:
             holdingStack = HoldingStackItem()
 
@@ -82,7 +82,6 @@ class FundSpider(scrapy.Spider):
 
             if ratio is not None:
                 yield holdingStack
-        return
 
     def _format_empty_value(self, value):
         if "--" != value:

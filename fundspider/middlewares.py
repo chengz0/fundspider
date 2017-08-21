@@ -7,7 +7,7 @@
 
 import requests
 import random
-
+from user_agent import agents
 
 class FundspiderSpiderMiddleware(object):
     # Not all methods need to be defined. If a method is not defined,
@@ -23,16 +23,9 @@ class FundspiderSpiderMiddleware(object):
         return proxy
 
 
-# class RandomUserAgent(object):
-#     """Randomly rotate user agents based on a list of predefined ones"""
-#
-#     def __init__(self, agents):
-#         self.agents = agents
-#
-#     @classmethod
-#     def from_crawler(cls, crawler):
-#         return cls(crawler.settings.getlist('USER_AGENTS'))
-#
-#     def process_request(self, request, spider):
-#         # print "**************************" + random.choice(self.agents)
-#         request.headers.setdefault('User-Agent', random.choice(self.agents))
+class RandomUserAgent(object):
+    """Randomly rotate user agents based on a list of predefined ones"""
+
+    def process_request(self, request, spider):
+        agent = random.choice(agents)
+        request.headers["User-Agent"] = agent
