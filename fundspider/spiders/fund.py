@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import scrapy
 import time
-# import requests
+import requests
 
 from fundspider.items import FundspiderItem, HoldingStackItem
 
@@ -14,13 +14,14 @@ class FundSpider(scrapy.Spider):
     ]
 
     def __init__(self):
-        self.index = int(time.time()) / 3600
+        self.index = int(time.time()) / 86400
 
     def parse(self, response):
         print response
+        # response.header.
         XPATH_PAGE = "//div[@id='main']/div[@id='content']/table/tbody/tr"
         fundPaths = response.selector.xpath(XPATH_PAGE)
-        for fundPath in fundPaths:
+        for fundPath in fundPaths[1001:]:
             fund = FundspiderItem()
             fund['ts'] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time()))
             fund['index'] = self.index
@@ -43,22 +44,23 @@ class FundSpider(scrapy.Spider):
                 holding_page = "http://info.chinafund.cn/fund/%s/ccmx/" % code
                 print holding_page
                 yield fund
+
                 yield scrapy.Request(holding_page, callback=self._get_holdings, meta={
                     'fund_code': code,
+                    # 'proxy': self._get_proxy(),
+                    # 'dont_redirect': True,
+                    # 'handle_httpstatus_list': [301, 302],
                     # 'handle_httpstatus_all': True,
                 })
-                # 'proxy': self._get_proxy(),
-                # 'dont_redirect': True,
-                # 'handle_httpstatus_list': [301, 302]
                 # break
 
     def _get_holdings(self, response):
-        self.logger.info("got response %d for %r" % (response.status, response.url))
-        # if response.status in (302,) and 'Location' in response.headers:
-        #     self.logger.debug("(parse_page) Location header: %r" % response.headers['Location'])
-        #     yield scrapy.Request(
-        #         response.urljoin(response.headers['Location']),
-        #         callback=self._get_holdings)
+        print response.headers
+        if response.status in (302, 301) and 'Location' in response.headers:
+            base_url = scrapy.utils.response.get_base_url(response)
+            self.logger.debug("(parse_page) Location header: %r" % response.headers['Location'])
+            yield scrapy.Request(scrapy.utils.url.urljoin_rfc(base_url, response.headers['Location']),
+                                 callback=self._get_holdings)
 
         # response.selector.xpath('//div[@id="c"]/table')[1].xpath('tr')[1].xpath('td')
         selector = scrapy.selector.Selector(response)
@@ -94,6 +96,6 @@ class FundSpider(scrapy.Spider):
     def _format_centesimal_value(self, value):
         return self._format_empty_value(value.replace("%", ""))
 
-        # def _get_proxy(self):
-        #     proxy = requests.get("http://127.0.0.1:5000/get/").content
-        #     return proxy
+    def _get_proxy(self):
+        proxy = 'http://{}'.format(requests.get("http://127.0.0.1:5000/get/").content)
+        return proxy

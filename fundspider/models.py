@@ -18,7 +18,7 @@ def create_table(engine):
 
 
 class AddFundItem(DeclarativeBase):
-    __tablename__ = "fund_test"
+    __tablename__ = "funds"
 
     id = Column(Integer, primary_key=True)
     ts = Column('ts', DateTime, nullable=True)

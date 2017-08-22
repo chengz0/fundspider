@@ -33,7 +33,7 @@ DOWNLOADER_MIDDLEWARES = {
     'fundspider.middlewares.RandomUserAgent': 70,
     # 'scrapy.downloadermiddlewares.retry.RetryMiddleware': 80,
     # 'fundspider.middlewares.FundspiderSpiderMiddleware': 90,
-    # 'scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware': 100,
+    'scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware': 100,
 }
 
 DATABASE = {
