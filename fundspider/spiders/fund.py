@@ -2,6 +2,7 @@
 import scrapy
 import time
 import requests
+import fund_code
 
 from fundspider.items import FundspiderItem, HoldingStackItem
 
@@ -41,18 +42,19 @@ class FundSpider(scrapy.Spider):
 
             print value
             if value is not None:
-                holding_page = "http://info.chinafund.cn/fund/%s/ccmx/" % code
-                print holding_page
                 yield fund
 
-                yield scrapy.Request(holding_page, callback=self._get_holdings, meta={
-                    'fund_code': code,
-                    # 'proxy': self._get_proxy(),
-                    # 'dont_redirect': True,
-                    # 'handle_httpstatus_list': [301, 302],
-                    # 'handle_httpstatus_all': True,
-                })
-                # break
+                if code in fund_code.codes:
+                    holding_page = "http://info.chinafund.cn/fund/%s/ccmx/" % code
+                    print holding_page
+                    yield scrapy.Request(holding_page, callback=self._get_holdings, meta={
+                        'fund_code': code,
+                        # 'proxy': self._get_proxy(),
+                        # 'dont_redirect': True,
+                        # 'handle_httpstatus_list': [301, 302],
+                        # 'handle_httpstatus_all': True,
+                    })
+                    # break
 
     def _get_holdings(self, response):
         print response.headers
